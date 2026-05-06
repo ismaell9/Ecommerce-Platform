@@ -1,0 +1,97 @@
+import { useState } from 'react'
+import { Outlet, Link, useLocation } from 'react-router-dom'
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+} from 'lucide-react'
+
+const navItems = [
+  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/admin/products', label: 'Products', icon: Package },
+  { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { path: '/admin/users', label: 'Users', icon: Users },
+  { path: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+]
+
+export function AdminLayout() {
+  const [collapsed, setCollapsed] = useState(false)
+  const location = useLocation()
+
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      <aside
+        className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-30 ${
+          collapsed ? 'w-16' : 'w-64'
+        }`}
+      >
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
+          {!collapsed && (
+            <Link to="/" className="text-lg font-bold text-primary-400">
+              Admin Panel
+            </Link>
+          )}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-1 rounded-lg hover:bg-gray-800"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+
+        <nav className="mt-4 px-2 space-y-1">
+          {navItems.map((item) => {
+            const isActive =
+              item.path === '/admin'
+                ? location.pathname === '/admin'
+                : location.pathname.startsWith(item.path)
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                  isActive
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                }`}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="absolute bottom-4 left-0 right-0 px-2">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span>Back to Store</span>}
+          </Link>
+        </div>
+      </aside>
+
+      <main
+        className={`flex-1 transition-all duration-300 ${
+          collapsed ? 'ml-16' : 'ml-64'
+        }`}
+      >
+        <div className="h-16 bg-white border-b border-gray-200" />
+        <div className="p-6">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  )
+}
