@@ -5,7 +5,7 @@ import { ProductCard } from '@/features/products/components/ProductCard'
 import { Pagination } from '@/components/ui/Pagination'
 import { ProductCardSkeleton } from '@/components/ui/Skeleton'
 import { config } from '@/config/env'
-import { Filter, SlidersHorizontal, Search } from 'lucide-react'
+import { Filter, SlidersHorizontal, Search, X } from 'lucide-react'
 import type { ProductFilters, SortingParams } from '@/types'
 
 export function ProductListPage() {
@@ -42,16 +42,26 @@ export function ProductListPage() {
   const clearFilters = () => {
     setFilters({})
     setSorting({ sortBy: 'createdAt', sortOrder: 'desc' })
+    setLocalSearch('')
     setPage(1)
   }
+
+  const hasActiveFilters = Object.values(filters).some((v) => v !== undefined) || sorting.sortBy !== 'createdAt' || sorting.sortOrder !== 'desc'
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Products</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Products</h1>
+          {filters.search && (
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Search results for &ldquo;{filters.search}&rdquo;
+            </p>
+          )}
+        </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300"
+          className="lg:hidden flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
         >
           <Filter className="h-4 w-4" />
           Filters
@@ -65,18 +75,21 @@ export function ProductListPage() {
           <div className="sticky top-24 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
-              <button
-                onClick={clearFilters}
-                className="text-sm text-primary-600 hover:text-primary-700"
-              >
-                Clear all
-              </button>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                  Clear all
+                </button>
+              )}
             </div>
 
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</h3>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   placeholder="Search products..."
@@ -85,7 +98,7 @@ export function ProductListPage() {
                     setLocalSearch(e.target.value)
                     handleFilterChange('search', e.target.value || undefined)
                   }}
-                  className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-gray-600 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 transition-all"
                 />
               </div>
             </div>
@@ -95,7 +108,7 @@ export function ProductListPage() {
               <select
                 value={filters.categoryId || ''}
                 onChange={(e) => handleFilterChange('categoryId', e.target.value || undefined)}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm transition-all focus:border-primary-500 dark:focus:border-primary-400 focus:ring-1 focus:ring-primary-500"
               >
                 <option value="">All Categories</option>
                 {categories?.map((cat) => (
@@ -111,7 +124,7 @@ export function ProductListPage() {
               <select
                 value={filters.brandId || ''}
                 onChange={(e) => handleFilterChange('brandId', e.target.value || undefined)}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm transition-all focus:border-primary-500 dark:focus:border-primary-400 focus:ring-1 focus:ring-primary-500"
               >
                 <option value="">All Brands</option>
                 {brands?.map((brand) => (
@@ -132,7 +145,7 @@ export function ProductListPage() {
                   onChange={(e) =>
                     handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)
                   }
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm transition-all focus:border-primary-500 dark:focus:border-primary-400 focus:ring-1 focus:ring-primary-500"
                 />
                 <input
                   type="number"
@@ -141,24 +154,24 @@ export function ProductListPage() {
                   onChange={(e) =>
                     handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)
                   }
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm transition-all focus:border-primary-500 dark:focus:border-primary-400 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
             </div>
 
             <div>
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</h3>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {[4, 3, 2, 1].map((rating) => (
-                  <label key={rating} className="flex items-center gap-2 cursor-pointer">
+                  <label key={rating} className="flex items-center gap-2 cursor-pointer group">
                     <input
                       type="radio"
                       name="rating"
                       checked={filters.rating === rating}
                       onChange={() => handleFilterChange('rating', rating)}
-                      className="h-4 w-4"
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500"
                     />
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                    <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">
                       {rating}+ stars
                     </span>
                   </label>
@@ -174,7 +187,7 @@ export function ProductListPage() {
                   const [sortBy, sortOrder] = e.target.value.split('-') as [string, 'asc' | 'desc']
                   setSorting({ sortBy, sortOrder })
                 }}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm transition-all focus:border-primary-500 dark:focus:border-primary-400 focus:ring-1 focus:ring-primary-500"
               >
                 <option value="createdAt-desc">Newest First</option>
                 <option value="createdAt-asc">Oldest First</option>
@@ -187,7 +200,7 @@ export function ProductListPage() {
           </div>
         </aside>
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -196,6 +209,11 @@ export function ProductListPage() {
             </div>
           ) : data && data.data.length > 0 ? (
             <>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing {data.data.length} of {data.totalCount} products
+                </p>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {data.data.map((product) => (
                   <ProductCard key={product.id} product={product} />
@@ -211,16 +229,21 @@ export function ProductListPage() {
               </div>
             </>
           ) : (
-            <div className="text-center py-12">
-              <SlidersHorizontal className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No products found</h3>
-              <p className="mt-2 text-gray-500 dark:text-gray-400">Try adjusting your filters</p>
-              <button
-                onClick={clearFilters}
-                className="mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium"
-              >
-                Clear all filters
-              </button>
+            <div className="text-center py-16">
+              <div className="mx-auto h-16 w-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
+                <SlidersHorizontal className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No products found</h3>
+              <p className="mt-2 text-gray-500 dark:text-gray-400">Try adjusting your search or filters</p>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="mt-4 inline-flex items-center gap-1 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                  Clear all filters
+                </button>
+              )}
             </div>
           )}
         </div>

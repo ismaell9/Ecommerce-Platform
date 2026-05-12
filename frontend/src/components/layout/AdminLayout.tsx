@@ -24,9 +24,9 @@ export function AdminLayout() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950">
       <aside
-        className={`fixed left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 z-30 ${
+        className={`fixed left-0 top-0 h-full bg-gray-900 dark:bg-gray-950 text-white transition-all duration-300 z-30 border-r border-gray-800 ${
           collapsed ? 'w-16' : 'w-64'
         }`}
       >
@@ -38,7 +38,7 @@ export function AdminLayout() {
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-lg hover:bg-gray-800"
+            className="p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
           >
             {collapsed ? (
               <ChevronRight className="h-5 w-5" />
@@ -58,9 +58,9 @@ export function AdminLayout() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   isActive
-                    ? 'bg-gray-800 text-white'
+                    ? 'bg-primary-600 text-white shadow-sm'
                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}
               >
@@ -74,7 +74,7 @@ export function AdminLayout() {
         <div className="absolute bottom-4 left-0 right-0 px-2">
           <Link
             to="/"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-all"
           >
             <ArrowLeft className="h-5 w-5 flex-shrink-0" />
             {!collapsed && <span>Back to Store</span>}
@@ -87,7 +87,7 @@ export function AdminLayout() {
           collapsed ? 'ml-16' : 'ml-64'
         }`}
       >
-        <div className="h-16 bg-white border-b border-gray-200" />
+        <div className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800" />
         <div className="p-6">
           <Outlet />
         </div>

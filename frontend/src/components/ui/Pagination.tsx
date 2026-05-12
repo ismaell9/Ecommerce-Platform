@@ -50,14 +50,14 @@ export function Pagination({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:opacity-50"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
       {getPageNumbers().map((page, index) =>
         typeof page === 'string' ? (
-          <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
+          <span key={`ellipsis-${index}`} className="px-2 text-gray-500 dark:text-gray-400">
             ...
           </span>
         ) : (
@@ -65,10 +65,10 @@ export function Pagination({
             key={page}
             onClick={() => onPageChange(page)}
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors',
+              'flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-all duration-200',
               currentPage === page
-                ? 'bg-primary-600 text-white'
-                : 'text-gray-700 hover:bg-gray-100',
+                ? 'bg-primary-600 text-white shadow-sm'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800',
             )}
           >
             {page}
@@ -79,7 +79,7 @@ export function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 disabled:opacity-50"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

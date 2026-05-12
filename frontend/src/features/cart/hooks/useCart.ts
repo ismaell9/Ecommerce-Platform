@@ -29,6 +29,9 @@ export function useAddToCart() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success('Added to cart')
     },
+    onError: () => {
+      toast.error('Failed to add item to cart')
+    },
   })
 }
 
@@ -40,6 +43,9 @@ export function useUpdateCartItem() {
       cartApi.updateCartItem(itemId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
+    },
+    onError: () => {
+      toast.error('Failed to update cart item')
     },
   })
 }
@@ -53,6 +59,9 @@ export function useRemoveCartItem() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       toast.success('Item removed from cart')
     },
+    onError: () => {
+      toast.error('Failed to remove item from cart')
+    },
   })
 }
 
@@ -63,6 +72,9 @@ export function useClearCart() {
     mutationFn: () => cartApi.clearCart(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
+    },
+    onError: () => {
+      toast.error('Failed to clear cart')
     },
   })
 }

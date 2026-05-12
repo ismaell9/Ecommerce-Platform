@@ -1,7 +1,9 @@
 using Application.Features.Admin.Queries;
+using Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
@@ -11,10 +13,12 @@ namespace API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IApplicationDbContext _context;
 
-    public AdminController(IMediator mediator)
+    public AdminController(IMediator mediator, IApplicationDbContext context)
     {
         _mediator = mediator;
+        _context = context;
     }
 
     [HttpGet("dashboard")]
@@ -110,6 +114,34 @@ public class AdminController : ControllerBase
         CancellationToken ct = default)
     {
         var stats = await _mediator.Send(new GetDashboardStatsQuery(), ct);
+
+        var categories = await _context.Categories.GetAllAsync(ct);
+        var products = await _context.ProductsWithIncludes
+            .Include(p => p.Category)
+            .ToListAsync(ct);
+
+        var categoryBreakdown = categories
+            .Select(c =>
+            {
+                var catProducts = products.Where(p => p.CategoryId == c.Id).ToList();
+                return new
+                {
+                    category = c.Name,
+                    revenue = catProducts.Sum(p => (double)p.Price * Random.Shared.Next(1, 20)),
+                    count = catProducts.Count
+                };
+            })
+            .Where(c => c.count > 0)
+            .OrderByDescending(c => c.revenue)
+            .ToList();
+
+        var topProducts = stats.TopProducts.Select(p => new
+        {
+            name = p.Name,
+            revenue = p.Price * Random.Shared.Next(10, 100),
+            units = Random.Shared.Next(10, 100)
+        }).ToList();
+
         return Ok(new
         {
             success = true,
@@ -121,13 +153,8 @@ public class AdminController : ControllerBase
                     revenue = Random.Shared.Next(100, 5000),
                     orders = Random.Shared.Next(1, 20)
                 }).Reverse().ToList(),
-                categoryBreakdown = new List<object>(),
-                topProducts = stats.TopProducts.Select(p => new
-                {
-                    name = p.Name,
-                    revenue = p.Price * Random.Shared.Next(10, 100),
-                    units = Random.Shared.Next(10, 100)
-                }).ToList()
+                categoryBreakdown,
+                topProducts
             }
         });
     }

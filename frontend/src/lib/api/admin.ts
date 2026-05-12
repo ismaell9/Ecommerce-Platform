@@ -3,9 +3,23 @@ import type {
   ApiResponse,
   PaginatedResponse,
   User,
-  Product,
-  Order,
 } from '@/types'
+
+interface RecentOrder {
+  id: string
+  orderNumber: string
+  total: number
+  status: string
+  createdAt: string
+  itemCount: number
+}
+
+interface DashboardProduct {
+  id: string
+  name: string
+  price: number
+  imageUrl: string
+}
 
 export const adminApi = {
   getDashboardStats: () =>
@@ -16,8 +30,8 @@ export const adminApi = {
     totalUsers: number
     revenueChange: number
     ordersChange: number
-    recentOrders: Order[]
-    topProducts: Product[]
+    recentOrders: RecentOrder[]
+    topProducts: DashboardProduct[]
   }>>('/admin/dashboard'),
 
   getUsers: (params?: {

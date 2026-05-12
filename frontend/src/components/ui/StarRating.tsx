@@ -41,7 +41,7 @@ export function StarRating({
               sizeMap[size],
               star <= rating
                 ? 'fill-yellow-400 text-yellow-400'
-                : 'fill-gray-200 text-gray-200',
+                : 'fill-gray-200 dark:fill-gray-600 text-gray-200 dark:text-gray-600',
             )}
           />
         </button>

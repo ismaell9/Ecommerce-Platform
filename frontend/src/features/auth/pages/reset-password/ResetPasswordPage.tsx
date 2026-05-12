@@ -50,8 +50,8 @@ export function ResetPasswordPage() {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">Invalid reset link</h2>
-          <p className="mt-2 text-gray-500">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Invalid reset link</h2>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
             Please request a new password reset link.
           </p>
           <Link to="/forgot-password" className="mt-4 inline-block">
@@ -66,11 +66,14 @@ export function ResetPasswordPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Reset password</h1>
-          <p className="mt-2 text-gray-500">Enter your new password</p>
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-primary-100 dark:bg-primary-500/10 flex items-center justify-center mb-4">
+            <Lock className="h-7 w-7 text-primary-600 dark:text-primary-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Reset password</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">Enter your new password</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <Input
               label="New Password"

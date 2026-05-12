@@ -62,8 +62,10 @@ export function CheckoutPage() {
       const order = response.data.data
 
       if (order.paymentStatus === 'Paid') {
-        toast.success(`Order placed successfully! Transaction: ${order.paymentTransactionId || ''}`)
+        toast.success('Order placed successfully!')
         queryClient.invalidateQueries({ queryKey: ['cart'] })
+        queryClient.invalidateQueries({ queryKey: ['orders'] })
+        queryClient.invalidateQueries({ queryKey: ['admin-orders'] })
         dispatch(clearCart())
       } else {
         toast.error('Payment failed. Please try again.')

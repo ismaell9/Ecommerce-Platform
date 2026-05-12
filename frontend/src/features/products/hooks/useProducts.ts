@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { productsApi } from '@/lib/api'
 import type { ProductFilters, PaginationParams, SortingParams } from '@/types'
+import toast from 'react-hot-toast'
 
 export function useProducts(
   params: ProductFilters & PaginationParams & SortingParams = {},
@@ -58,6 +59,10 @@ export function useAddReview() {
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: ['product', productId] })
       queryClient.invalidateQueries({ queryKey: ['reviews', productId] })
+      toast.success('Review added')
+    },
+    onError: () => {
+      toast.error('Failed to add review')
     },
   })
 }

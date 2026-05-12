@@ -14,9 +14,11 @@ export function CartPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <ShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
-        <h2 className="mt-4 text-xl font-semibold text-gray-900">Your cart is empty</h2>
-        <p className="mt-2 text-gray-500">Looks like you have not added anything yet.</p>
+        <div className="mx-auto h-20 w-20 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
+          <ShoppingBag className="h-10 w-10 text-gray-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Your cart is empty</h2>
+        <p className="mt-2 text-gray-500 dark:text-gray-400">Looks like you haven&apos;t added anything yet.</p>
         <Link to="/products" className="mt-6 inline-block">
           <Button>Start Shopping</Button>
         </Link>
@@ -25,6 +27,7 @@ export function CartPage() {
   }
 
   const handleQuantityChange = (itemId: string, quantity: number) => {
+    if (quantity < 1) return
     updateMutation.mutate({
       itemId,
       data: { itemId, quantity },
@@ -37,62 +40,62 @@ export function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map((item) => (
             <div
               key={item.id}
-              className="flex gap-4 p-4 bg-white rounded-xl border border-gray-200"
+              className="flex gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 transition-all hover:shadow-md"
             >
               <img
                 src={resolveImageUrl(item.productImage)}
                 alt={item.productName}
-                className="w-24 h-24 object-cover rounded-lg bg-gray-100"
+                className="w-24 h-24 object-cover rounded-lg bg-gray-100 dark:bg-gray-700 flex-shrink-0"
               />
 
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <Link
                   to={`/products/${item.productSlug}`}
-                  className="font-medium text-gray-900 hover:text-primary-600"
+                  className="font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors line-clamp-1"
                 >
                   {item.productName}
                 </Link>
 
                 {item.variantAttributes && (
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {Object.entries(item.variantAttributes)
                       .map(([k, v]) => `${k}: ${v}`)
                       .join(', ')}
                   </p>
                 )}
 
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="flex items-center border border-gray-300 rounded-lg">
+                <div className="mt-3 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                       disabled={item.quantity <= 1}
-                      className="p-1.5 hover:bg-gray-100 disabled:opacity-50"
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="px-3 text-sm">{item.quantity}</span>
+                    <span className="px-3 text-sm font-medium text-gray-900 dark:text-gray-100 min-w-[2rem] text-center">{item.quantity}</span>
                     <button
                       onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      className="p-1.5 hover:bg-gray-100"
+                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold text-gray-900">
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                       {formatPrice(item.subtotal)}
                     </span>
                     <button
                       onClick={() => handleRemove(item.id)}
-                      className="p-1.5 text-gray-400 hover:text-danger-600"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-danger-600 dark:hover:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-500/10 transition-all"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -104,29 +107,29 @@ export function CartPage() {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="sticky top-24 bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
+          <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Order Summary</h2>
 
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Subtotal ({cart.totalItems} items)</span>
-                <span>{formatPrice(cart.subtotal)}</span>
+                <span className="text-gray-900 dark:text-gray-100">{formatPrice(cart.subtotal)}</span>
               </div>
               {cart.discount > 0 && (
-                <div className="flex justify-between text-success-600">
+                <div className="flex justify-between text-success-600 dark:text-success-400">
                   <span>Discount</span>
                   <span>-{formatPrice(cart.discount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Shipping</span>
-                <span>{cart.shipping > 0 ? formatPrice(cart.shipping) : 'Free'}</span>
+                <span className="text-gray-900 dark:text-gray-100">{cart.shipping > 0 ? formatPrice(cart.shipping) : 'Free'}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
                 <span>Tax</span>
-                <span>{formatPrice(cart.tax)}</span>
+                <span className="text-gray-900 dark:text-gray-100">{formatPrice(cart.tax)}</span>
               </div>
-              <div className="border-t border-gray-200 pt-3 flex justify-between font-semibold text-gray-900">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between font-semibold text-lg text-gray-900 dark:text-gray-100">
                 <span>Total</span>
                 <span>{formatPrice(cart.total)}</span>
               </div>
@@ -142,7 +145,7 @@ export function CartPage() {
 
             <Link
               to="/products"
-              className="block mt-3 text-center text-sm text-primary-600 hover:text-primary-700"
+              className="block mt-3 text-center text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
             >
               Continue Shopping
             </Link>

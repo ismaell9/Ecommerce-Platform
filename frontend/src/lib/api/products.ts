@@ -24,10 +24,10 @@ export const productsApi = {
     apiClient.get<ApiResponse<Product>>(`/products/${id}`),
 
   getCategories: () =>
-    apiClient.get<ApiResponse<Category[]>>('/categories'),
+    apiClient.get<ApiResponse<Category[]>>('/products/categories'),
 
   getBrands: () =>
-    apiClient.get<ApiResponse<Brand[]>>('/brands'),
+    apiClient.get<ApiResponse<Brand[]>>('/products/brands'),
 
   getFeaturedProducts: () =>
     apiClient.get<ApiResponse<Product[]>>('/products/featured'),

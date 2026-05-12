@@ -2,6 +2,7 @@ using Application.Common;
 using Application.Features.Products.Queries;
 using Application.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Admin.Queries;
 
@@ -22,17 +23,25 @@ public class GetAdminProductsQueryHandler : IRequestHandler<GetAdminProductsQuer
 
     public async Task<PaginatedResult<ProductDto>> Handle(GetAdminProductsQuery request, CancellationToken cancellationToken)
     {
-        var products = await _context.Products.GetPagedAsync(
-            request.PageNumber,
-            request.PageSize,
-            predicate: p =>
+        var query = _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Variants)
+            .Where(p =>
                 (string.IsNullOrEmpty(request.Search) || p.Name.Contains(request.Search)) &&
-                (!request.CategoryId.HasValue || p.CategoryId == request.CategoryId),
-            orderBy: q => q.OrderByDescending(p => p.CreatedAt),
-            cancellationToken: cancellationToken);
+                (!request.CategoryId.HasValue || p.CategoryId == request.CategoryId));
 
-        var dtos = products.Data.Select(GetProductsQueryHandler.MapToDto).ToList();
+        var totalCount = await query.CountAsync(cancellationToken);
 
-        return PaginatedResult<ProductDto>.Create(dtos, products.TotalCount, products.CurrentPage, products.PageSize);
+        var products = await query
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var dtos = products.Select(GetProductsQueryHandler.MapToDto).ToList();
+
+        return PaginatedResult<ProductDto>.Create(dtos, totalCount, request.PageNumber, request.PageSize);
     }
 }

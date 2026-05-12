@@ -3,6 +3,7 @@ import { authApi } from '@/lib/api'
 import { useAppDispatch } from '@/lib/hooks/redux'
 import { setCredentials, logout } from '@/store/slices/authSlice'
 import { tokenStorage } from '@/lib/utils/storage'
+import toast from 'react-hot-toast'
 
 export function useLogin() {
   const dispatch = useAppDispatch()
@@ -17,6 +18,10 @@ export function useLogin() {
       const user = userResponse.data.data
       dispatch(setCredentials({ user, tokens }))
       queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+      toast.success('Welcome back!')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Invalid email or password')
     },
   })
 }
@@ -24,6 +29,12 @@ export function useLogin() {
 export function useRegister() {
   return useMutation({
     mutationFn: authApi.register,
+    onSuccess: () => {
+      toast.success('Account created successfully! Please check your email to verify.')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Registration failed')
+    },
   })
 }
 
@@ -49,18 +60,33 @@ export function useLogout() {
 export function useForgotPassword() {
   return useMutation({
     mutationFn: authApi.forgotPassword,
+    onSuccess: () => {
+      toast.success('Password reset instructions sent to your email')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to send reset email')
+    },
   })
 }
 
 export function useResetPassword() {
   return useMutation({
     mutationFn: authApi.resetPassword,
+    onSuccess: () => {
+      toast.success('Password reset successfully! You can now log in.')
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to reset password')
+    },
   })
 }
 
 export function useChangePassword() {
   return useMutation({
     mutationFn: authApi.changePassword,
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to change password')
+    },
   })
 }
 
@@ -71,6 +97,9 @@ export function useUpdateProfile() {
     mutationFn: authApi.updateProfile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to update profile')
     },
   })
 }

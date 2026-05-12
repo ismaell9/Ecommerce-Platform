@@ -36,10 +36,12 @@ export function ForgotPasswordPage() {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center">
-          <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
-            <Mail className="mx-auto h-12 w-12 text-primary-600" />
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">Check your email</h2>
-            <p className="mt-2 text-gray-500">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
+            <div className="mx-auto h-14 w-14 rounded-2xl bg-primary-100 dark:bg-primary-500/10 flex items-center justify-center">
+              <Mail className="h-7 w-7 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h2 className="mt-4 text-xl font-semibold text-gray-900 dark:text-gray-100">Check your email</h2>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">
               We&apos;ve sent a password reset link to your email address.
             </p>
             <Link to="/login" className="mt-6 inline-block">
@@ -55,13 +57,16 @@ export function ForgotPasswordPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Forgot password?</h1>
-          <p className="mt-2 text-gray-500">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-primary-100 dark:bg-primary-500/10 flex items-center justify-center mb-4">
+            <Mail className="h-7 w-7 text-primary-600 dark:text-primary-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Forgot password?</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
             Enter your email and we&apos;ll send you a reset link
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 shadow-sm">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <Input
               label="Email"
@@ -77,12 +82,14 @@ export function ForgotPasswordPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-500">
-            Remember your password?{' '}
-            <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              Sign in
-            </Link>
-          </p>
+          <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+              Remember your password?{' '}
+              <Link to="/login" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

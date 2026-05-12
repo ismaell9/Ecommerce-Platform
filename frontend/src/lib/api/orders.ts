@@ -28,16 +28,34 @@ export const ordersApi = {
     apiClient.get<ApiResponse<Coupon>>(`/coupons/validate/${code}`),
 }
 
+interface AdminOrder {
+  id: string
+  orderNumber: string
+  subtotal: number
+  discount: number
+  tax: number
+  shipping: number
+  total: number
+  status: string
+  paymentStatus: string
+  paymentMethod?: string
+  shippingAddress?: Record<string, string>
+  trackingNumber?: string
+  notes?: string
+  createdAt: string
+  itemCount: number
+}
+
 export const adminOrdersApi = {
   getAllOrders: (params?: {
     pageNumber?: number
     pageSize?: number
     status?: string
   }) =>
-    apiClient.get<PaginatedResponse<Order>>('/admin/orders', { params }),
+    apiClient.get<PaginatedResponse<AdminOrder>>('/admin/orders', { params }),
 
   updateOrderStatus: (id: string, status: string) =>
-    apiClient.put<ApiResponse<Order>>(`/admin/orders/${id}/status`, { status }),
+    apiClient.put<ApiResponse<AdminOrder>>(`/admin/orders/${id}/status`, { status }),
 
   getOrderStats: () =>
     apiClient.get<ApiResponse<{

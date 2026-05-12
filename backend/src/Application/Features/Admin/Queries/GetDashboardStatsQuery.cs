@@ -65,6 +65,12 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
             ? Math.Round((thisMonth.Count - lastMonth.Count) / (decimal)lastMonth.Count * 100, 1)
             : 100;
 
+        var recentOrderIds = orders.OrderByDescending(o => o.CreatedAt).Take(5).Select(o => o.Id).ToList();
+        var itemCounts = (await _context.OrderItems
+            .GetByExpressionAsync(oi => recentOrderIds.Contains(oi.OrderId), cancellationToken))
+            .GroupBy(oi => oi.OrderId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
         var recentOrders = orders
             .OrderByDescending(o => o.CreatedAt)
             .Take(5)
@@ -74,7 +80,8 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
                 OrderNumber = o.OrderNumber,
                 Total = o.Total,
                 Status = o.Status.ToString(),
-                CreatedAt = o.CreatedAt
+                CreatedAt = o.CreatedAt,
+                ItemCount = itemCounts.GetValueOrDefault(o.Id, 0)
             })
             .ToList();
 
