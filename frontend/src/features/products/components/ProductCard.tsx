@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ShoppingCart, Heart } from 'lucide-react'
-import { formatPrice, getDiscountPercentage } from '@/lib/utils/helpers'
+import { formatPrice, getDiscountPercentage, resolveImageUrl } from '@/lib/utils/helpers'
+import { useAddToCart } from '@/features/cart/hooks/useCart'
 import type { Product } from '@/types'
 
 interface ProductCardProps {
@@ -8,16 +9,23 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const addToCart = useAddToCart()
   const discount = product.originalPrice
     ? getDiscountPercentage(product.originalPrice, product.price)
     : 0
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    addToCart.mutate({ productId: product.id, quantity: 1 })
+  }
 
   return (
     <div className="group rounded-xl border border-gray-200 bg-white overflow-hidden transition-shadow hover:shadow-lg">
       <Link to={`/products/${product.slug}`} className="block">
         <div className="aspect-square overflow-hidden bg-gray-100 relative">
           <img
-            src={product.images[0]?.url || '/placeholder-product.jpg'}
+            src={resolveImageUrl(product.images[0]?.url)}
             alt={product.name}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
@@ -69,6 +77,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         <div className="mt-4 flex gap-2">
           <button
+            onClick={handleAddToCart}
             className="flex-1 flex items-center justify-center gap-2 h-9 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
             disabled={product.stock === 0}
           >

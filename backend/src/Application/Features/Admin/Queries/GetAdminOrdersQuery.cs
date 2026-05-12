@@ -33,7 +33,7 @@ public class GetAdminOrdersQueryHandler : IRequestHandler<GetAdminOrdersQuery, P
             orderBy: q => q.OrderByDescending(o => o.CreatedAt),
             cancellationToken: cancellationToken);
 
-        var dtos = orders.Items.Select(o => new OrderDto
+        var dtos = orders.Data.Select(o => new OrderDto
         {
             Id = o.Id,
             OrderNumber = o.OrderNumber,
@@ -45,6 +45,7 @@ public class GetAdminOrdersQueryHandler : IRequestHandler<GetAdminOrdersQuery, P
             Status = o.Status.ToString(),
             PaymentStatus = o.PaymentStatus.ToString(),
             PaymentMethod = o.PaymentMethod,
+            PaymentTransactionId = o.PaymentTransactionId,
             ShippingAddress = o.ShippingAddress,
             TrackingNumber = o.TrackingNumber,
             Notes = o.Notes,

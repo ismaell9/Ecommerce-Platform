@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { authApi } from '@/lib/api'
 import { useAppDispatch } from '@/lib/hooks/redux'
 import { setCredentials, logout } from '@/store/slices/authSlice'
+import { tokenStorage } from '@/lib/utils/storage'
 
 export function useLogin() {
   const dispatch = useAppDispatch()
@@ -11,6 +12,7 @@ export function useLogin() {
     mutationFn: authApi.login,
     onSuccess: async (response) => {
       const tokens = response.data.data
+      tokenStorage.setTokens(tokens)
       const userResponse = await authApi.getCurrentUser()
       const user = userResponse.data.data
       dispatch(setCredentials({ user, tokens }))

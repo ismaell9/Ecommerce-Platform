@@ -33,6 +33,7 @@ export interface Order {
   status: OrderStatus
   paymentStatus: PaymentStatus
   paymentMethod?: string
+  paymentTransactionId?: string
   shippingAddress: ShippingAddress
   trackingNumber?: string
   notes?: string

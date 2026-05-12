@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '@/lib/hooks/redux'
 import { closeCart } from '@/store/slices/cartSlice'
 import { useRemoveCartItem } from '@/features/cart/hooks/useCart'
-import { formatPrice } from '@/lib/utils/helpers'
+import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { X, ShoppingBag } from 'lucide-react'
 
 export function CartDrawer() {
@@ -39,9 +39,9 @@ export function CartDrawer() {
               {cart.items.map((item) => (
                 <div key={item.id} className="flex gap-4">
                   <img
-                    src={item.productImage}
+                    src={resolveImageUrl(item.productImage)}
                     alt={item.productName}
-                    className="w-20 h-20 object-cover rounded-lg"
+                    className="w-20 h-20 object-cover rounded-lg bg-gray-100"
                   />
                   <div className="flex-1">
                     <Link

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ordersApi } from '@/lib/api'
-import { formatPrice, formatDateTime } from '@/lib/utils/helpers'
+import { formatPrice, formatDateTime, resolveImageUrl } from '@/lib/utils/helpers'
 import { Pagination } from '@/components/ui/Pagination'
 import { Badge } from '@/components/ui/Badge'
 import { Package } from 'lucide-react'
@@ -77,9 +77,9 @@ export function OrderHistoryPage() {
               {order.items.slice(0, 3).map((item) => (
                 <div key={item.id} className="flex items-center gap-3">
                   <img
-                    src={item.productImage}
+                    src={resolveImageUrl(item.productImage)}
                     alt={item.productName}
-                    className="w-12 h-12 object-cover rounded-lg"
+                    className="w-12 h-12 object-cover rounded-lg bg-gray-100"
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{item.productName}</p>

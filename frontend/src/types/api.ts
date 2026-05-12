@@ -15,6 +15,13 @@ export interface PaginatedResponse<T> {
   hasNextPage: boolean
 }
 
+export interface PaginatedApiResponse<T> {
+  success: boolean
+  message: string
+  data: PaginatedResponse<T>
+  statusCode: number
+}
+
 export interface ApiError {
   message: string
   errors?: Record<string, string[]>

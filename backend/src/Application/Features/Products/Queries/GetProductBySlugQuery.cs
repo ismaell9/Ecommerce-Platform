@@ -2,6 +2,7 @@ using Application.Features.Products.Queries;
 using Application.Interfaces;
 using Domain.Exceptions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace Application.Features.Products.Queries;
@@ -42,17 +43,19 @@ public class GetProductBySlugQueryHandler : IRequestHandler<GetProductBySlugQuer
 
     public async Task<ProductDetailDto> Handle(GetProductBySlugQuery request, CancellationToken cancellationToken)
     {
-        var products = await _context.Products.GetByExpressionAsync(
-            p => p.Slug == request.Slug && p.IsActive, cancellationToken);
-
-        var product = products.FirstOrDefault()
+        var product = await _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Variants)
+            .FirstOrDefaultAsync(p => p.Slug == request.Slug && p.IsActive, cancellationToken)
             ?? throw new NotFoundException("Product", request.Slug);
 
-        var reviews = await _context.ProductReviews.GetByExpressionAsync(
-            r => r.ProductId == product.Id, cancellationToken);
+        var reviews = await _context.ProductReviews
+            .GetByExpressionAsync(r => r.ProductId == product.Id, cancellationToken);
 
-        var specs = await _context.ProductSpecifications.GetByExpressionAsync(
-            s => s.ProductId == product.Id, cancellationToken);
+        var specs = await _context.ProductSpecifications
+            .GetByExpressionAsync(s => s.ProductId == product.Id, cancellationToken);
 
         return new ProductDetailDto
         {
@@ -111,7 +114,7 @@ public class GetProductBySlugQueryHandler : IRequestHandler<GetProductBySlugQuer
             {
                 Id = r.Id,
                 UserId = r.UserId,
-                UserName = $"{r.User.FirstName} {r.User.LastName}",
+                UserName = r.User?.FirstName + " " + r.User?.LastName,
                 Rating = r.Rating,
                 Comment = r.Comment,
                 CreatedAt = r.CreatedAt,

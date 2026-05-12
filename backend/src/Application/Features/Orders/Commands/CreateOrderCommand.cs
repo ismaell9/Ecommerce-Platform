@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace Application.Features.Orders.Commands;
@@ -32,13 +33,16 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IPaymentGatewayService _paymentGateway;
 
     public CreateOrderCommandHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        IPaymentGatewayService paymentGateway)
     {
         _context = context;
         _currentUser = currentUser;
+        _paymentGateway = paymentGateway;
     }
 
     public async Task<Result<OrderDto>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
@@ -49,24 +53,33 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             .GetByExpressionAsync(c => c.UserId == userId, cancellationToken))
             .FirstOrDefault();
 
-        if (cart == null || !cart.Items.Any())
+        var cartItems = await _context.CartItems.GetByExpressionAsync(ci => ci.CartId == cart.Id, cancellationToken);
+
+        if (cart == null || !cartItems.Any())
             return Result<OrderDto>.FailureResult("Cart is empty.");
 
-        var cartItems = await _context.CartItems.GetByExpressionAsync(ci => ci.CartId == cart.Id, cancellationToken);
+        // Load all products with images in one query
+        var productIds = cartItems.Select(ci => ci.ProductId).Distinct().ToList();
+        var products = await _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        var productDict = products.ToDictionary(p => p.Id);
 
         decimal subtotal = 0;
         var orderItems = new List<OrderItem>();
 
         foreach (var ci in cartItems)
         {
-            var product = await _context.Products.GetByIdAsync(ci.ProductId, cancellationToken);
-            if (product == null || !product.IsActive)
+            if (!productDict.TryGetValue(ci.ProductId, out var product) || !product.IsActive)
                 return Result<OrderDto>.FailureResult($"Product '{ci.ProductId}' is no longer available.");
 
             if (product.Stock < ci.Quantity)
                 return Result<OrderDto>.FailureResult($"Product '{product.Name}' has insufficient stock.");
 
-            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.FirstOrDefault();
+            var primaryImage = product.Images.OrderBy(i => i.Order).FirstOrDefault(i => i.IsPrimary)
+                ?? product.Images.OrderBy(i => i.Order).FirstOrDefault();
 
             string? variantAttrs = null;
             if (ci.VariantId.HasValue)
@@ -138,19 +151,44 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         var shipping = (subtotal - discount) > 50 ? 0 : 5.99m;
         var total = subtotal - discount + tax + shipping;
 
+        var orderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
+
+        // Process payment through gateway
+        var paymentRequest = new PaymentRequest
+        {
+            OrderNumber = orderNumber,
+            Amount = total,
+            Currency = "USD",
+            PaymentMethod = request.PaymentMethod,
+            WalletId = request.PaymentMethod == "wallet" ? userId.ToString() : null,
+            Description = $"Payment for order {orderNumber}"
+        };
+
+        var paymentResult = await _paymentGateway.ProcessPaymentAsync(paymentRequest, cancellationToken);
+
+        var paymentStatus = paymentResult.Success ? PaymentStatus.Paid : PaymentStatus.Failed;
+        var orderStatus = paymentResult.Success ? OrderStatus.Pending : OrderStatus.Cancelled;
+        string? transactionId = paymentResult.Success ? paymentResult.TransactionId : null;
+
+        if (!paymentResult.Success)
+        {
+            return Result<OrderDto>.FailureResult($"Payment failed: {paymentResult.Message}");
+        }
+
         var order = new Order
         {
             Id = Guid.NewGuid(),
-            OrderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}",
+            OrderNumber = orderNumber,
             UserId = userId,
             Subtotal = subtotal,
             Discount = discount,
             Tax = tax,
             Shipping = shipping,
             Total = total,
-            Status = OrderStatus.Pending,
-            PaymentStatus = PaymentStatus.Pending,
+            Status = orderStatus,
+            PaymentStatus = paymentStatus,
             PaymentMethod = request.PaymentMethod,
+            PaymentTransactionId = transactionId,
             ShippingAddress = JsonSerializer.Serialize(request.ShippingAddress),
             Notes = request.Notes,
             CouponId = couponId
@@ -172,7 +210,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
         await _context.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<OrderDto>.SuccessResult(MapToDto(order), "Order created successfully.");
+        return Result<OrderDto>.SuccessResult(MapToDto(order), $"Order created successfully. Transaction: {transactionId}");
     }
 
     private OrderDto MapToDto(Order order) => new()
@@ -187,6 +225,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         Status = order.Status.ToString(),
         PaymentStatus = order.PaymentStatus.ToString(),
         PaymentMethod = order.PaymentMethod,
+        PaymentTransactionId = order.PaymentTransactionId,
         ShippingAddress = order.ShippingAddress,
         TrackingNumber = order.TrackingNumber,
         Notes = order.Notes,

@@ -35,7 +35,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Pag
 
         var dtos = new List<OrderDto>();
 
-        foreach (var order in orders.Items)
+        foreach (var order in orders.Data)
         {
             var dto = MapToDto(order);
             var items = await _context.OrderItems.GetByExpressionAsync(oi => oi.OrderId == order.Id, cancellationToken);
@@ -69,6 +69,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Pag
         Status = order.Status.ToString(),
         PaymentStatus = order.PaymentStatus.ToString(),
         PaymentMethod = order.PaymentMethod,
+        PaymentTransactionId = order.PaymentTransactionId,
         ShippingAddress = order.ShippingAddress,
         TrackingNumber = order.TrackingNumber,
         Notes = order.Notes,

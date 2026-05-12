@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector } from '@/lib/hooks/redux'
 import { useRemoveCartItem, useUpdateCartItem } from '@/features/cart/hooks/useCart'
-import { formatPrice } from '@/lib/utils/helpers'
+import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { Button } from '@/components/ui/Button'
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
 
@@ -47,9 +47,9 @@ export function CartPage() {
               className="flex gap-4 p-4 bg-white rounded-xl border border-gray-200"
             >
               <img
-                src={item.productImage}
+                src={resolveImageUrl(item.productImage)}
                 alt={item.productName}
-                className="w-24 h-24 object-cover rounded-lg"
+                className="w-24 h-24 object-cover rounded-lg bg-gray-100"
               />
 
               <div className="flex-1">

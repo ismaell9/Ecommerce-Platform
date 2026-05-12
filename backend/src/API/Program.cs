@@ -11,6 +11,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Fix SQLite path to be relative to the content root
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "ecommerce.db");
+builder.Configuration["ConnectionStrings:DefaultConnection"] = $"Data Source={dbPath}";
+
 // Serilog
 builder.Host.UseSerilog((ctx, cfg) => cfg
     .ReadFrom.Configuration(ctx.Configuration)
@@ -30,7 +34,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -79,6 +83,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();

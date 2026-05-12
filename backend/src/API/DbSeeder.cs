@@ -2,15 +2,27 @@ using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace API;
 
 public static class DbSeeder
 {
+    private static readonly Dictionary<string, string> ProductImageUrls = new()
+    {
+        ["WBH-001"] = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop",
+        ["SWP-001"] = "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&h=600&fit=crop",
+        ["CCT-001"] = "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
+        ["MKR-001"] = "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&h=600&fit=crop",
+        ["RSE-001"] = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&h=600&fit=crop",
+        ["BNC-001"] = "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&h=600&fit=crop",
+    };
+
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var env = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
         await context.Database.EnsureCreatedAsync();
 
@@ -136,14 +148,45 @@ public static class DbSeeder
         await context.Products.AddRangeAsync(products);
         await context.SaveChangesAsync();
 
-        // Product images (using placeholder URLs)
+        // Download and store product images locally
+        var uploadsDir = Path.Combine(env.ContentRootPath, "wwwroot", "uploads", "products");
+        Directory.CreateDirectory(uploadsDir);
+
         var images = new List<ProductImage>();
+        using var httpClient = new HttpClient();
+
         foreach (var product in products)
         {
+            string imageUrl;
+            if (ProductImageUrls.TryGetValue(product.Sku, out var downloadUrl))
+            {
+                try
+                {
+                    var fileName = $"{product.Sku.ToLower()}.jpg";
+                    var filePath = Path.Combine(uploadsDir, fileName);
+
+                    if (!File.Exists(filePath))
+                    {
+                        var bytes = await httpClient.GetByteArrayAsync(downloadUrl);
+                        await File.WriteAllBytesAsync(filePath, bytes);
+                    }
+
+                    imageUrl = $"/uploads/products/{fileName}";
+                }
+                catch
+                {
+                    imageUrl = downloadUrl;
+                }
+            }
+            else
+            {
+                imageUrl = "/uploads/products/default.jpg";
+            }
+
             images.Add(new ProductImage
             {
                 Id = Guid.NewGuid(), ProductId = product.Id,
-                Url = $"https://picsum.photos/seed/{product.Sku}/400/400",
+                Url = imageUrl,
                 AltText = product.Name, IsPrimary = true, Order = 1
             });
         }

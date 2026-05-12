@@ -15,7 +15,7 @@ export const productsApi = {
   getProducts: (
     params: ProductFilters & PaginationParams & SortingParams,
   ) =>
-    apiClient.get<PaginatedResponse<Product>>('/products', { params }),
+    apiClient.get<ApiResponse<PaginatedResponse<Product>>>('/products', { params }),
 
   getProductBySlug: (slug: string) =>
     apiClient.get<ApiResponse<Product>>(`/products/${slug}`),
@@ -36,7 +36,7 @@ export const productsApi = {
     apiClient.get<ApiResponse<Product[]>>('/products/new-arrivals'),
 
   searchProducts: (query: string) =>
-    apiClient.get<PaginatedResponse<Product>>('/products/search', {
+    apiClient.get<ApiResponse<PaginatedResponse<Product>>>('/products/search', {
       params: { query },
     }),
 

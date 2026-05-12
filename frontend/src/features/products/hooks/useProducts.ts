@@ -7,7 +7,7 @@ export function useProducts(
 ) {
   return useQuery({
     queryKey: ['products', params],
-    queryFn: () => productsApi.getProducts(params).then((res) => res.data),
+    queryFn: () => productsApi.getProducts(params).then((res) => res.data.data),
   })
 }
 

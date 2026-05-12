@@ -7,7 +7,7 @@ import { StarRating } from '@/components/ui/StarRating'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { formatPrice, getDiscountPercentage, formatDateTime } from '@/lib/utils/helpers'
+import { formatPrice, getDiscountPercentage, formatDateTime, resolveImageUrl } from '@/lib/utils/helpers'
 import {
   ShoppingCart,
   Heart,
@@ -108,7 +108,7 @@ export function ProductDetailsPage() {
         <div>
           <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 mb-4">
             <img
-              src={product.images[selectedImage]?.url || primaryImage?.url}
+              src={resolveImageUrl(product.images[selectedImage]?.url || primaryImage?.url)}
               alt={product.images[selectedImage]?.altText || product.name}
               className="w-full h-full object-cover"
             />
@@ -122,7 +122,7 @@ export function ProductDetailsPage() {
                   selectedImage === index ? 'border-primary-600' : 'border-transparent'
                 }`}
               >
-                <img src={image.url} alt={image.altText || ''} className="w-full h-full object-cover" />
+                <img src={resolveImageUrl(image.url)} alt={image.altText || ''} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

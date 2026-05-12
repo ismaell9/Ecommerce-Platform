@@ -1,8 +1,16 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { config } from '@/config/env'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export function resolveImageUrl(url: string | undefined | null): string {
+  if (!url) return '/placeholder-product.jpg'
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  if (url.startsWith('/')) return `${config.serverBaseUrl}${url}`
+  return `${config.serverBaseUrl}/${url}`
 }
 
 export function formatPrice(price: number, currency = 'USD'): string {

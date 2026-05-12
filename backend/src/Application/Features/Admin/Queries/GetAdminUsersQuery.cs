@@ -47,7 +47,7 @@ public class GetAdminUsersQueryHandler : IRequestHandler<GetAdminUsersQuery, Pag
             cancellationToken: cancellationToken);
 
         var dtos = new List<UserDto>();
-        foreach (var user in users.Items)
+        foreach (var user in users.Data)
         {
             var roles = (await _context.Roles
                 .GetByExpressionAsync(r => r.UserRoles.Any(ur => ur.UserId == user.Id), cancellationToken))

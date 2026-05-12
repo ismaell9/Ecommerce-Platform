@@ -1,22 +1,33 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Heart, User, Menu, X, Search, LogOut, Package, LayoutDashboard } from 'lucide-react'
-import { useAppSelector, useAppDispatch } from '@/lib/hooks/redux'
+import { ShoppingCart, Heart, User, Menu, X, Search, LogOut, Package, LayoutDashboard, Sun, Moon } from 'lucide-react'
+import { useAppSelector } from '@/lib/hooks/redux'
 import { useLogout } from '@/features/auth/hooks/useAuth'
-import { toggleCart } from '@/store/slices/cartSlice'
+import { useTheme } from '@/components/providers/ThemeProvider'
 import { Button } from '@/components/ui/Button'
 import { config } from '@/config/env'
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const { theme, toggleTheme } = useTheme()
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const user = useAppSelector((state) => state.auth.user)
   const cart = useAppSelector((state) => state.cart.cart)
   const wishlist = useAppSelector((state) => state.wishlist)
-  const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const logoutMutation = useLogout()
+
+  const handleSearch = useCallback((e: React.FormEvent | React.KeyboardEvent) => {
+    e.preventDefault()
+    const trimmed = searchQuery.trim()
+    if (trimmed) {
+      navigate(`/products?search=${encodeURIComponent(trimmed)}`)
+      setSearchQuery('')
+      setMobileMenuOpen(false)
+    }
+  }, [searchQuery, navigate])
 
   const handleLogout = async () => {
     await logoutMutation.mutateAsync()
@@ -26,7 +37,7 @@ export function Header() {
   const isAdmin = user?.roles.includes(config.roles.admin)
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200 bg-white">
+    <header className="sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
@@ -34,13 +45,13 @@ export function Header() {
               <span className="text-xl font-bold text-primary-600">ShopHub</span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-sm font-medium text-gray-700 hover:text-primary-600">
+              <nav className="hidden md:flex items-center gap-6">
+              <Link to="/" className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600">
                 Home
               </Link>
               <Link
                 to="/products"
-                className="text-sm font-medium text-gray-700 hover:text-primary-600"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600"
               >
                 Products
               </Link>
@@ -48,21 +59,31 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
+            <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e)}
+                className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 bg-white dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:focus:border-primary-400"
               />
-            </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 hover:text-primary-600"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
             {isAuthenticated ? (
               <>
-                <button
-                  onClick={() => dispatch(toggleCart())}
+                <Link
+                  to="/cart"
                   className="relative p-2 text-gray-600 hover:text-primary-600"
                 >
                   <ShoppingCart className="h-5 w-5" />
@@ -71,7 +92,7 @@ export function Header() {
                       {cart.totalItems}
                     </span>
                   )}
-                </button>
+                </Link>
 
                 <Link
                   to="/wishlist"
@@ -94,17 +115,17 @@ export function Header() {
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white py-2 shadow-lg">
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
+                    <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 py-2 shadow-lg">
+                      <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-600">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
                       </div>
 
                       <Link
                         to="/profile"
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <User className="h-4 w-4" />
@@ -112,7 +133,7 @@ export function Header() {
                       </Link>
                       <Link
                         to="/profile/orders"
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         <Package className="h-4 w-4" />
@@ -122,7 +143,7 @@ export function Header() {
                       {isAdmin && (
                         <Link
                           to="/admin"
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                           onClick={() => setUserMenuOpen(false)}
                         >
                           <LayoutDashboard className="h-4 w-4" />
@@ -130,13 +151,13 @@ export function Header() {
                         </Link>
                       )}
 
-                      <div className="border-t border-gray-100 mt-1 pt-1">
+                      <div className="border-t border-gray-100 dark:border-gray-600 mt-1 pt-1">
                         <button
                           onClick={() => {
                             setUserMenuOpen(false)
                             handleLogout()
                           }}
-                          className="flex w-full items-center gap-2 px-4 py-2 text-sm text-danger-600 hover:bg-gray-50"
+                          className="flex w-full items-center gap-2 px-4 py-2 text-sm text-danger-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           <LogOut className="h-4 w-4" />
                           Logout
@@ -169,16 +190,18 @@ export function Header() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
             <div className="mb-4">
-              <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                 />
-              </div>
+              </form>
             </div>
             <nav className="flex flex-col gap-2">
               <Link

@@ -2,6 +2,7 @@ using Application.Common;
 using Application.Interfaces;
 using Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Products.Queries;
 
@@ -88,38 +89,47 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Paginat
 
     public async Task<PaginatedResult<ProductDto>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        var products = await _context.Products.GetPagedAsync(
-            request.PageNumber,
-            request.PageSize,
-            predicate: p => p.IsActive &&
+        IQueryable<Product> query = _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Include(p => p.Variants)
+            .Where(p => p.IsActive &&
                 (!request.CategoryId.HasValue || p.CategoryId == request.CategoryId) &&
                 (!request.BrandId.HasValue || (p.BrandId.HasValue && p.BrandId == request.BrandId)) &&
                 (!request.MinPrice.HasValue || p.Price >= request.MinPrice) &&
                 (!request.MaxPrice.HasValue || p.Price <= request.MaxPrice) &&
                 (!request.Rating.HasValue || p.AverageRating >= request.Rating) &&
                 (!request.InStock.HasValue || p.Stock > 0) &&
-                (string.IsNullOrEmpty(request.Search) || p.Name.Contains(request.Search) || p.Description.Contains(request.Search)),
-            orderBy: request.SortBy switch
-            {
-                "price" => q => request.SortOrder == "asc"
-                    ? q.OrderBy(p => p.Price)
-                    : q.OrderByDescending(p => p.Price),
-                "name" => q => request.SortOrder == "asc"
-                    ? q.OrderBy(p => p.Name)
-                    : q.OrderByDescending(p => p.Name),
-                "rating" => q => request.SortOrder == "asc"
-                    ? q.OrderBy(p => p.AverageRating)
-                    : q.OrderByDescending(p => p.AverageRating),
-                _ => q => request.SortOrder == "asc"
-                    ? q.OrderBy(p => p.CreatedAt)
-                    : q.OrderByDescending(p => p.CreatedAt)
-            },
-            cancellationToken: cancellationToken);
+                (string.IsNullOrEmpty(request.Search) || p.Name.Contains(request.Search) || p.Description.Contains(request.Search)));
 
-        var dtos = products.Items.Select(MapToDto).ToList();
+        query = request.SortBy switch
+        {
+            "price" => request.SortOrder == "asc"
+                ? query.OrderBy(p => p.Price)
+                : query.OrderByDescending(p => p.Price),
+            "name" => request.SortOrder == "asc"
+                ? query.OrderBy(p => p.Name)
+                : query.OrderByDescending(p => p.Name),
+            "rating" => request.SortOrder == "asc"
+                ? query.OrderBy(p => p.AverageRating)
+                : query.OrderByDescending(p => p.AverageRating),
+            _ => request.SortOrder == "asc"
+                ? query.OrderBy(p => p.CreatedAt)
+                : query.OrderByDescending(p => p.CreatedAt)
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var products = await query
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var dtos = products.Select(MapToDto).ToList();
 
         return PaginatedResult<ProductDto>.Create(
-            dtos, products.TotalCount, products.CurrentPage, products.PageSize);
+            dtos, totalCount, request.PageNumber, request.PageSize);
     }
 
     public static ProductDto MapToDto(Product p) => new()

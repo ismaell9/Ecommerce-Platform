@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { cartApi } from '@/lib/api'
-import { useAppDispatch } from '@/lib/hooks/redux'
+import { useAppDispatch, useAppSelector } from '@/lib/hooks/redux'
 import { setCart } from '@/store/slices/cartSlice'
 import type { AddToCartRequest, UpdateCartItemRequest } from '@/types'
 import toast from 'react-hot-toast'
 
 export function useCart() {
   const dispatch = useAppDispatch()
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
 
   return useQuery({
     queryKey: ['cart'],
@@ -15,7 +16,7 @@ export function useCart() {
         dispatch(setCart(res.data.data))
         return res.data.data
       }),
-    enabled: true,
+    enabled: isAuthenticated,
   })
 }
 

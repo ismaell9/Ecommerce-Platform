@@ -26,7 +26,7 @@ public class CartController : ControllerBase
     }
 
     [HttpPost("items")]
-    public async Task<IActionResult> AddToCart(AddToCartCommand command, CancellationToken ct)
+    public async Task<IActionResult> AddToCart([FromBody] AddToCartCommand command, CancellationToken ct)
     {
         var result = await _mediator.Send(command, ct);
         return result.Success ? Ok(result) : BadRequest(result);

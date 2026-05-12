@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Interfaces;
 
@@ -21,5 +22,6 @@ public interface IApplicationDbContext
     IAsyncRepository<OrderItem> OrderItems { get; }
     IAsyncRepository<Coupon> Coupons { get; }
     IAsyncRepository<CouponUsage> CouponUsages { get; }
+    DbSet<Product> ProductsWithIncludes { get; }
     IUnitOfWork UnitOfWork { get; }
 }

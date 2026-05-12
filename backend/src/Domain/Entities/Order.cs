@@ -18,6 +18,7 @@ public class Order : BaseEntity
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     public string? PaymentMethod { get; set; }
+    public string? PaymentTransactionId { get; set; }
 
     public string ShippingAddress { get; set; } = string.Empty;
     public string? TrackingNumber { get; set; }

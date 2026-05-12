@@ -33,7 +33,7 @@ public class ProductsController : ControllerBase
     {
         var result = await _mediator.Send(new GetProductsQuery(
             pageNumber, pageSize, categoryId, brandId, minPrice, maxPrice, rating, search, inStock, sortBy, sortOrder), ct);
-        return Ok(result);
+        return Ok(new { success = true, data = result });
     }
 
     [HttpGet("{slug}")]
@@ -61,7 +61,7 @@ public class ProductsController : ControllerBase
     public async Task<IActionResult> SearchProducts([FromQuery] string query, CancellationToken ct)
     {
         var result = await _mediator.Send(new GetProductsQuery(Search: query), ct);
-        return Ok(result);
+        return Ok(new { success = true, data = result });
     }
 
     [HttpGet("categories")]

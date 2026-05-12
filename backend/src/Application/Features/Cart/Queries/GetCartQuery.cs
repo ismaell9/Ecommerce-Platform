@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Domain.Entities;
 using Domain.Exceptions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using CartEntity = Domain.Entities.Cart;
 
 namespace Application.Features.Cart.Queries;
@@ -42,18 +43,33 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
     {
         var cartItems = await _context.CartItems.GetByExpressionAsync(ci => ci.CartId == cartId, ct);
 
+        var productIds = cartItems.Select(ci => ci.ProductId).Distinct().ToList();
+        var products = await _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(ct);
+
+        var productDict = products.ToDictionary(p => p.Id);
+
+        var variantIds = cartItems.Where(ci => ci.VariantId.HasValue).Select(ci => ci.VariantId.Value).Distinct().ToList();
+        var variants = variantIds.Any()
+            ? (await _context.ProductVariants.GetByExpressionAsync(v => variantIds.Contains(v.Id), ct))
+                .ToDictionary(v => v.Id)
+            : new Dictionary<Guid, ProductVariant>();
+
         var items = new List<CartItemDto>();
         decimal subtotal = 0;
         int totalItems = 0;
 
         foreach (var ci in cartItems)
         {
-            var product = await _context.Products.GetByIdAsync(ci.ProductId, ct);
-            if (product == null) continue;
+            if (!productDict.TryGetValue(ci.ProductId, out var product)) continue;
 
-            var variantAttrs = ci.VariantId.HasValue
-                ? (await _context.ProductVariants.GetByIdAsync(ci.VariantId.Value, ct))?.Attributes
-                : null;
+            string variantAttrs = null;
+            if (ci.VariantId.HasValue && variants.TryGetValue(ci.VariantId.Value, out var variant))
+            {
+                variantAttrs = variant.Attributes;
+            }
 
             var itemDto = new CartItemDto
             {
@@ -61,7 +77,9 @@ public class GetCartQueryHandler : IRequestHandler<GetCartQuery, CartDto>
                 ProductId = ci.ProductId,
                 ProductName = product.Name,
                 ProductSlug = product.Slug,
-                ProductImage = product.Images.FirstOrDefault(i => i.IsPrimary)?.Url ?? product.Images.FirstOrDefault()?.Url ?? "",
+                ProductImage = product.Images.OrderBy(i => i.Order).FirstOrDefault(i => i.IsPrimary)?.Url
+                    ?? product.Images.OrderBy(i => i.Order).FirstOrDefault()?.Url
+                    ?? "",
                 VariantId = ci.VariantId,
                 VariantAttributes = variantAttrs != null ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(variantAttrs) : null,
                 Quantity = ci.Quantity,

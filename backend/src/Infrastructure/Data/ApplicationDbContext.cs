@@ -65,6 +65,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     IAsyncRepository<Coupon> IApplicationDbContext.Coupons => CouponsRepo;
     IAsyncRepository<CouponUsage> IApplicationDbContext.CouponUsages => CouponUsagesRepo;
 
+    public DbSet<Product> ProductsWithIncludes => Set<Product>();
+
     public IUnitOfWork UnitOfWork => new UnitOfWork(this);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

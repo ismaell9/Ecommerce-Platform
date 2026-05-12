@@ -1,5 +1,7 @@
 using Application.Interfaces;
+using Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Products.Queries;
 
@@ -16,11 +18,14 @@ public class GetNewArrivalsQueryHandler : IRequestHandler<GetNewArrivalsQuery, L
 
     public async Task<List<ProductDto>> Handle(GetNewArrivalsQuery request, CancellationToken cancellationToken)
     {
-        var products = (await _context.Products
-            .GetByExpressionAsync(p => p.IsActive, cancellationToken))
+        var products = await _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .Where(p => p.IsActive)
             .OrderByDescending(p => p.CreatedAt)
             .Take(8)
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         return products.Select(GetProductsQueryHandler.MapToDto).ToList();
     }

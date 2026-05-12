@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useWishlist, useToggleWishlist } from '@/features/wishlist/hooks/useWishlist'
-import { formatPrice } from '@/lib/utils/helpers'
+import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { Button } from '@/components/ui/Button'
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react'
 
@@ -34,7 +34,7 @@ export function WishlistPage() {
             <Link to={`/products/${item.productSlug}`}>
               <div className="aspect-square overflow-hidden bg-gray-100">
                 <img
-                  src={item.productImage}
+                  src={resolveImageUrl(item.productImage)}
                   alt={item.productName}
                   className="w-full h-full object-cover hover:scale-105 transition-transform"
                 />

@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom'
 import { router } from './router'
 import { QueryProvider } from './providers/QueryProvider'
 import { StoreProvider } from './providers/StoreProvider'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { Toaster } from 'react-hot-toast'
 import './index.css'
 
@@ -11,7 +12,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <StoreProvider>
       <QueryProvider>
-        <RouterProvider router={router} />
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
         <Toaster
           position="top-right"
           toastOptions={{

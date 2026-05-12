@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Domain.Entities;
 using Domain.Exceptions;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using WishlistEntity = Domain.Entities.Wishlist;
 
 namespace Application.Features.Wishlist.Queries;
@@ -60,13 +61,21 @@ public class GetWishlistQueryHandler : IRequestHandler<GetWishlistQuery, Wishlis
         var items = await _context.WishlistItems.GetByExpressionAsync(
             wi => wi.WishlistId == wishlist.Id, cancellationToken);
 
+        var productIds = items.Select(wi => wi.ProductId).Distinct().ToList();
+        var products = await _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        var productDict = products.ToDictionary(p => p.Id);
+
         var itemDtos = new List<WishlistItemDto>();
         foreach (var wi in items.OrderByDescending(wi => wi.CreatedAt))
         {
-            var product = await _context.Products.GetByIdAsync(wi.ProductId, cancellationToken);
-            if (product == null) continue;
+            if (!productDict.TryGetValue(wi.ProductId, out var product)) continue;
 
-            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.FirstOrDefault();
+            var primaryImage = product.Images.OrderBy(i => i.Order).FirstOrDefault(i => i.IsPrimary)
+                ?? product.Images.OrderBy(i => i.Order).FirstOrDefault();
 
             itemDtos.Add(new WishlistItemDto
             {

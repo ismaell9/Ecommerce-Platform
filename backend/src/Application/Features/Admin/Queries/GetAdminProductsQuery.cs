@@ -31,7 +31,7 @@ public class GetAdminProductsQueryHandler : IRequestHandler<GetAdminProductsQuer
             orderBy: q => q.OrderByDescending(p => p.CreatedAt),
             cancellationToken: cancellationToken);
 
-        var dtos = products.Items.Select(GetProductsQueryHandler.MapToDto).ToList();
+        var dtos = products.Data.Select(GetProductsQueryHandler.MapToDto).ToList();
 
         return PaginatedResult<ProductDto>.Create(dtos, products.TotalCount, products.CurrentPage, products.PageSize);
     }

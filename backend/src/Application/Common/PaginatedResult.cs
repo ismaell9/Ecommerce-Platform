@@ -2,7 +2,7 @@ namespace Application.Common;
 
 public class PaginatedResult<T>
 {
-    public List<T> Items { get; set; } = new();
+    public List<T> Data { get; set; } = new();
     public int CurrentPage { get; set; }
     public int PageSize { get; set; }
     public int TotalCount { get; set; }
@@ -15,7 +15,7 @@ public class PaginatedResult<T>
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
         return new PaginatedResult<T>
         {
-            Items = items,
+            Data = items,
             CurrentPage = currentPage,
             PageSize = pageSize,
             TotalCount = totalCount,
