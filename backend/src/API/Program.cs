@@ -72,7 +72,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-// Seed database
+// Seed database (uses EnsureCreatedAsync for dev; switch to MigrateAsync for production)
 await DbSeeder.SeedAsync(app.Services);
 
 // Middleware pipeline

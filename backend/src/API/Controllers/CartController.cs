@@ -49,15 +49,22 @@ public class CartController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> ClearCart(CancellationToken ct)
     {
-        // TODO: Implement clear cart
-        return Ok(new { success = true, message = "Cart cleared." });
+        var result = await _mediator.Send(new ClearCartCommand(), ct);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 
     [HttpPost("coupon")]
     public async Task<IActionResult> ApplyCoupon([FromBody] ApplyCouponRequest request, CancellationToken ct)
     {
-        // TODO: Implement apply coupon
-        return Ok(new { success = true, message = "Coupon applied." });
+        if (string.IsNullOrWhiteSpace(request.Code))
+            return BadRequest(new { success = false, message = "Coupon code is required." });
+
+        var coupon = (await _mediator.Send(new GetCouponByCodeQuery(request.Code.Trim()), ct));
+
+        if (coupon == null)
+            return BadRequest(new { success = false, message = "Invalid or expired coupon code." });
+
+        return Ok(new { success = true, data = coupon, message = "Coupon applied." });
     }
 }
 

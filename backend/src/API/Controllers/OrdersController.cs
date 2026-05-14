@@ -31,8 +31,8 @@ public class OrdersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrder(Guid id, CancellationToken ct)
     {
-        // TODO: Implement get single order
-        return Ok(new { success = true, message = "Order retrieved." });
+        var result = await _mediator.Send(new GetOrderQuery(id), ct);
+        return result.Success ? Ok(result) : NotFound(result);
     }
 
     [HttpPost]
@@ -45,7 +45,7 @@ public class OrdersController : ControllerBase
     [HttpPost("{id}/cancel")]
     public async Task<IActionResult> CancelOrder(Guid id, CancellationToken ct)
     {
-        // TODO: Implement cancel order
-        return Ok(new { success = true, message = "Order cancelled." });
+        var result = await _mediator.Send(new CancelOrderCommand(id), ct);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }

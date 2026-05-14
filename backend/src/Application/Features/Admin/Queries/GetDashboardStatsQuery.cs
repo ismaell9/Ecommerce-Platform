@@ -2,6 +2,7 @@ using Application.Common;
 using Application.Interfaces;
 using Domain.Enums;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Admin.Queries;
 
@@ -49,7 +50,9 @@ public class GetDashboardStatsQueryHandler : IRequestHandler<GetDashboardStatsQu
     public async Task<DashboardStatsDto> Handle(GetDashboardStatsQuery request, CancellationToken cancellationToken)
     {
         var orders = await _context.Orders.GetAllAsync(cancellationToken);
-        var products = await _context.Products.GetAllAsync(cancellationToken);
+        var products = await _context.ProductsWithIncludes
+            .Include(p => p.Images)
+            .ToListAsync(cancellationToken);
         var users = await _context.Users.GetAllAsync(cancellationToken);
 
         var thisMonth = orders.Where(o => o.CreatedAt.Month == DateTime.UtcNow.Month && o.CreatedAt.Year == DateTime.UtcNow.Year).ToList();

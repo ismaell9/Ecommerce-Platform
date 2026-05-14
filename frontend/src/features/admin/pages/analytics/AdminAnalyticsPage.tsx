@@ -156,9 +156,9 @@ export function AdminAnalyticsPage() {
                 <div key={product.name} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white ${
                     index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
-                    index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                    index === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400' :
                     index === 2 ? 'bg-gradient-to-br from-amber-700 to-amber-900' :
-                    'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                    'bg-gray-400 dark:bg-gray-500'
                   }`}>
                     {index + 1}
                   </div>

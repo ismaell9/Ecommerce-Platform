@@ -13,7 +13,7 @@ import { CardDetailsForm } from '@/features/checkout/components/CardDetailsForm'
 import { ordersApi } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { ShippingAddress, CreateOrderRequest, CardDetails } from '@/types'
-import { CreditCard, Truck } from 'lucide-react'
+import { CreditCard, Truck, Tag } from 'lucide-react'
 
 export function CheckoutPage() {
   const navigate = useNavigate()
@@ -22,12 +22,31 @@ export function CheckoutPage() {
   const cart = useAppSelector((state) => state.cart.cart)
   const [selectedShipping, setSelectedShipping] = useState('standard')
   const [selectedPayment, setSelectedPayment] = useState('card')
+  const [couponCode, setCouponCode] = useState('')
+  const [couponValid, setCouponValid] = useState(false)
+  const [validatingCoupon, setValidatingCoupon] = useState(false)
   const [cardDetails, setCardDetails] = useState<CardDetails>({
     cardholderName: '',
     cardNumber: '',
     expiryDate: '',
     cvv: '',
   })
+
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) return
+    setValidatingCoupon(true)
+    try {
+      const res = await ordersApi.validateCoupon(couponCode.trim())
+      if (res.data.success) {
+        setCouponValid(true)
+        toast.success(`Coupon "${couponCode}" applied!`)
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Invalid coupon code')
+    } finally {
+      setValidatingCoupon(false)
+    }
+  }
 
   const {
     register,
@@ -71,6 +90,7 @@ export function CheckoutPage() {
       const orderData: CreateOrderRequest = {
         shippingAddress: data,
         paymentMethod: selectedPayment,
+        couponCode: couponValid ? couponCode.trim() : undefined,
         cardholderName: cardDetails.cardholderName,
         cardNumber: cardDetails.cardNumber,
         expiryDate: cardDetails.expiryDate,
@@ -198,6 +218,38 @@ export function CheckoutPage() {
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Tag className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Coupon Code</h2>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter coupon code"
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value)
+                  setCouponValid(false)
+                }}
+                disabled={couponValid}
+                className="flex-1 h-10 px-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50"
+              />
+              <Button
+                onClick={handleValidateCoupon}
+                disabled={!couponCode.trim() || couponValid}
+                isLoading={validatingCoupon}
+              >
+                Apply
+              </Button>
+            </div>
+            {couponValid && (
+              <p className="mt-2 text-sm text-success-600 dark:text-success-400">
+                Coupon "{couponCode}" applied!
+              </p>
+            )}
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">

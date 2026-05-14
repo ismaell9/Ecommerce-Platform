@@ -1,15 +1,37 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector } from '@/lib/hooks/redux'
 import { useRemoveCartItem, useUpdateCartItem } from '@/features/cart/hooks/useCart'
 import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { Button } from '@/components/ui/Button'
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
+import { ordersApi } from '@/lib/api'
+import { Minus, Plus, Trash2, ShoppingBag, Tag } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export function CartPage() {
+  const [couponCode, setCouponCode] = useState('')
+  const [couponApplied, setCouponApplied] = useState(false)
+  const [validatingCoupon, setValidatingCoupon] = useState(false)
   const cart = useAppSelector((state) => state.cart.cart)
   const removeMutation = useRemoveCartItem()
   const updateMutation = useUpdateCartItem()
   const navigate = useNavigate()
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return
+    setValidatingCoupon(true)
+    try {
+      const res = await ordersApi.validateCoupon(couponCode.trim())
+      if (res.data.success) {
+        toast.success(`Coupon "${couponCode}" applied!`)
+        setCouponApplied(true)
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Invalid coupon code')
+    } finally {
+      setValidatingCoupon(false)
+    }
+  }
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -109,6 +131,34 @@ export function CartPage() {
         <div className="lg:col-span-1">
           <div className="sticky top-24 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Order Summary</h2>
+
+            <div className="mb-4 p-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Tag className="h-4 w-4" />
+                Coupon Code
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter code"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  disabled={couponApplied}
+                  className="flex-1 h-9 px-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:opacity-50"
+                />
+                <Button
+                  size="sm"
+                  onClick={handleApplyCoupon}
+                  disabled={!couponCode.trim() || couponApplied || validatingCoupon}
+                  isLoading={validatingCoupon}
+                >
+                  Apply
+                </Button>
+              </div>
+              {couponApplied && (
+                <p className="mt-1 text-xs text-success-600 dark:text-success-400">Coupon will be applied at checkout</p>
+              )}
+            </div>
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-600 dark:text-gray-400">

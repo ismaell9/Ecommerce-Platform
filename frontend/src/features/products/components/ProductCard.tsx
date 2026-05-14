@@ -1,14 +1,33 @@
 import { Link } from 'react-router-dom'
 import { ShoppingCart, Heart } from 'lucide-react'
-import { formatPrice, getDiscountPercentage, resolveImageUrl } from '@/lib/utils/helpers'
+import { formatPrice, getDiscountPercentage, resolveImageUrl, highlightText } from '@/lib/utils/helpers'
 import { useAddToCart } from '@/features/cart/hooks/useCart'
 import type { Product } from '@/types'
 
 interface ProductCardProps {
   product: Product
+  searchQuery?: string
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+function HighlightedText({ text, query }: { text: string; query?: string }) {
+  if (!query) return <>{text}</>
+  const parts = highlightText(text, query)
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.highlighted ? (
+          <mark key={i} className="bg-yellow-200 dark:bg-yellow-700/60 text-inherit rounded-sm px-0.5">
+            {part.text}
+          </mark>
+        ) : (
+          <span key={i}>{part.text}</span>
+        ),
+      )}
+    </>
+  )
+}
+
+export function ProductCard({ product, searchQuery }: ProductCardProps) {
   const addToCart = useAddToCart()
   const discount = product.originalPrice
     ? getDiscountPercentage(product.originalPrice, product.price)
@@ -45,7 +64,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <div className="p-4">
         <Link to={`/products/${product.slug}`}>
           <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-            {product.name}
+            <HighlightedText text={product.name} query={searchQuery} />
           </h3>
         </Link>
 

@@ -29,8 +29,8 @@ public static class DependencyInjection
         // Services
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<IPaymentGatewayService, DummyPaymentGatewayService>();
+        services.AddScoped<IEmailService, SmtpEmailService>();
+        services.AddScoped<IPaymentGatewayService, StripePaymentGatewayService>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using Application.Features.Products.Commands;
 using Application.Features.Products.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -79,19 +80,19 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{productId}/reviews")]
-    public async Task<IActionResult> GetReviews(Guid productId, CancellationToken ct)
+    public async Task<IActionResult> GetProductReviews(Guid productId, CancellationToken ct)
     {
-        var product = await _mediator.Send(new GetProductBySlugQuery(""), ct);
-        // Reviews are included in product detail
-        return Ok(new { success = true, data = new List<object>() });
+        var reviews = await _mediator.Send(new GetProductReviewsQuery(productId), ct);
+        return Ok(new { success = true, data = reviews });
     }
 
     [HttpPost("{productId}/reviews")]
     [Authorize]
     public async Task<IActionResult> AddReview(Guid productId, [FromBody] AddReviewRequest request, CancellationToken ct)
     {
-        // TODO: Implement add review handler
-        return Ok(new { success = true, message = "Review added." });
+        var command = new AddReviewCommand(productId, request.Rating, request.Comment);
+        var result = await _mediator.Send(command, ct);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }
 

@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ordersApi } from '@/lib/api'
 import { formatPrice, formatDateTime, resolveImageUrl } from '@/lib/utils/helpers'
 import { Pagination } from '@/components/ui/Pagination'
 import { Badge } from '@/components/ui/Badge'
-import { Package } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Package, XCircle } from 'lucide-react'
+import toast from 'react-hot-toast'
 import type { Order } from '@/types'
 
 const statusColors: Record<string, 'default' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -23,8 +25,12 @@ const paymentColors: Record<string, 'default' | 'success' | 'warning' | 'danger'
   Refunded: 'default',
 }
 
+const cancellableStatuses = ['Pending', 'Processing']
+
 export function OrderHistoryPage() {
   const [page, setPage] = useState(1)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders', page],
@@ -33,6 +39,24 @@ export function OrderHistoryPage() {
         .getOrders({ pageNumber: page, pageSize: 10 })
         .then((res) => res.data),
   })
+
+  const cancelMutation = useMutation({
+    mutationFn: (orderId: string) => ordersApi.cancelOrder(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      toast.success('Order cancelled successfully')
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to cancel order')
+    },
+  })
+
+  const handleCancel = async (orderId: string) => {
+    if (window.confirm('Are you sure you want to cancel this order?')) {
+      setCancellingId(orderId)
+      cancelMutation.mutate(orderId, { onSettled: () => setCancellingId(null) })
+    }
+  }
 
   if (isLoading) {
     return (
@@ -104,9 +128,23 @@ export function OrderHistoryPage() {
             </div>
 
             <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                </span>
+                {cancellableStatuses.includes(order.status) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCancel(order.id)}
+                    isLoading={cancellingId === order.id}
+                    className="text-danger-600 dark:text-danger-400 border-danger-300 dark:border-danger-700 hover:bg-danger-50 dark:hover:bg-danger-500/10"
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                )}
+              </div>
               <span className="font-semibold text-gray-900 dark:text-gray-100">
                 Total: {formatPrice(order.total)}
               </span>

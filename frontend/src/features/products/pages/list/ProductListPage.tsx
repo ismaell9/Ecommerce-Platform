@@ -9,8 +9,11 @@ import { Filter, SlidersHorizontal, Search, X } from 'lucide-react'
 import type { ProductFilters, SortingParams } from '@/types'
 
 export function ProductListPage() {
-  const [searchParams] = useSearchParams()
-  const [page, setPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [page, setPage] = useState(() => {
+    const p = searchParams.get('page')
+    return p ? parseInt(p, 10) : 1
+  })
   const [filters, setFilters] = useState<ProductFilters>({ search: searchParams.get('search') || undefined })
   const [sorting, setSorting] = useState<SortingParams>({ sortBy: 'createdAt', sortOrder: 'desc' })
   const [showFilters, setShowFilters] = useState(false)
@@ -39,11 +42,20 @@ export function ProductListPage() {
     setPage(1)
   }
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage)
+    const params = new URLSearchParams(searchParams)
+    if (newPage > 1) params.set('page', String(newPage))
+    else params.delete('page')
+    setSearchParams(params, { replace: true })
+  }
+
   const clearFilters = () => {
     setFilters({})
     setSorting({ sortBy: 'createdAt', sortOrder: 'desc' })
     setLocalSearch('')
     setPage(1)
+    setSearchParams({}, { replace: true })
   }
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== undefined) || sorting.sortBy !== 'createdAt' || sorting.sortOrder !== 'desc'
@@ -216,7 +228,7 @@ export function ProductListPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {data.data.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} searchQuery={filters.search} />
                 ))}
               </div>
 
@@ -224,7 +236,7 @@ export function ProductListPage() {
                 <Pagination
                   currentPage={page}
                   totalPages={data.totalPages}
-                  onPageChange={setPage}
+                  onPageChange={handlePageChange}
                 />
               </div>
             </>

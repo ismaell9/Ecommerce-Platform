@@ -110,7 +110,7 @@ public class AuthController : ControllerBase
     [HttpGet("verify-email")]
     public async Task<IActionResult> VerifyEmail([FromQuery] string token, CancellationToken ct)
     {
-        // TODO: Implement email verification handler
-        return Ok(new { success = true, message = "Email verified successfully." });
+        var result = await _mediator.Send(new VerifyEmailCommand(token), ct);
+        return result.Success ? Ok(result) : BadRequest(result);
     }
 }
