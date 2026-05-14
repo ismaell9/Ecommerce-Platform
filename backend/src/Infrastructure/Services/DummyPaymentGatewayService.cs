@@ -20,6 +20,76 @@ public class DummyPaymentGatewayService : IPaymentGatewayService
 
         await Task.Delay(500, ct);
 
+        // Validate card details if payment method is card
+        if (request.PaymentMethod == "card")
+        {
+            if (string.IsNullOrWhiteSpace(request.CardholderName) ||
+                string.IsNullOrWhiteSpace(request.CardNumber) ||
+                string.IsNullOrWhiteSpace(request.ExpiryDate) ||
+                string.IsNullOrWhiteSpace(request.CVV))
+            {
+                _logger.LogWarning("DUMMY PAYMENT: Card payment failed for order {OrderNumber}. Missing card details.",
+                    request.OrderNumber);
+
+                return new PaymentResult
+                {
+                    Success = false,
+                    TransactionId = string.Empty,
+                    Message = "Invalid card details. Please provide all required card information.",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+
+            // Validate card number (basic check - should be 13-19 digits)
+            if (request.CardNumber.Length < 13 || request.CardNumber.Length > 19 || !request.CardNumber.All(char.IsDigit))
+            {
+                _logger.LogWarning("DUMMY PAYMENT: Card payment failed for order {OrderNumber}. Invalid card number format.",
+                    request.OrderNumber);
+
+                return new PaymentResult
+                {
+                    Success = false,
+                    TransactionId = string.Empty,
+                    Message = "Invalid card number. Please check and try again.",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+
+            // Validate expiry date format (MM/YY)
+            if (!request.ExpiryDate.Contains("/") || request.ExpiryDate.Length != 5)
+            {
+                _logger.LogWarning("DUMMY PAYMENT: Card payment failed for order {OrderNumber}. Invalid expiry date format.",
+                    request.OrderNumber);
+
+                return new PaymentResult
+                {
+                    Success = false,
+                    TransactionId = string.Empty,
+                    Message = "Invalid expiry date format. Use MM/YY format.",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+
+            // Validate CVV (3-4 digits)
+            if (request.CVV.Length < 3 || request.CVV.Length > 4 || !request.CVV.All(char.IsDigit))
+            {
+                _logger.LogWarning("DUMMY PAYMENT: Card payment failed for order {OrderNumber}. Invalid CVV.",
+                    request.OrderNumber);
+
+                return new PaymentResult
+                {
+                    Success = false,
+                    TransactionId = string.Empty,
+                    Message = "Invalid CVV. Please check and try again.",
+                    ProcessedAt = DateTime.UtcNow
+                };
+            }
+
+            _logger.LogInformation(
+                "DUMMY PAYMENT: Card validation passed for order {OrderNumber}. Card: **** **** **** {CardLast4}",
+                request.OrderNumber, request.CardNumber[^4..]);
+        }
+
         bool isSuccess = request.Amount > 0 && request.Amount <= 10000m;
 
         if (isSuccess)

@@ -1,6 +1,7 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { adminApi } from '@/lib/api'
-import { formatPrice } from '@/lib/utils/helpers'
+import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { TrendingUp, ShoppingCart, Package, Users, ArrowUpRight, ArrowDownRight, Activity, Clock } from 'lucide-react'
@@ -10,6 +11,31 @@ export function AdminDashboardPage() {
     queryKey: ['admin-dashboard'],
     queryFn: () => adminApi.getDashboardStats().then((res) => res.data.data),
   })
+
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(Date.now())
+  const [tick, setTick] = useState(Date.now())
+
+  useEffect(() => {
+    if (data) {
+      setLastUpdatedAt(Date.now())
+    }
+  }, [data])
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick(Date.now()), 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const updatedLabel = useMemo(() => {
+    const seconds = Math.round((Date.now() - lastUpdatedAt) / 1000)
+    if (seconds < 60) return 'Updated just now'
+    if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60)
+      return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`
+    }
+    const hours = Math.floor(seconds / 3600)
+    return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`
+  }, [lastUpdatedAt, tick])
 
   if (isLoading) {
     return (
@@ -83,7 +109,7 @@ export function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <Clock className="h-4 w-4" />
-          <span>Updated just now</span>
+          <span>{updatedLabel}</span>
         </div>
       </div>
 
@@ -180,14 +206,14 @@ export function AdminDashboardPage() {
                 <div key={product.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white ${
                     index === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
-                    index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                    index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-black' :
                     index === 2 ? 'bg-gradient-to-br from-amber-700 to-amber-900' :
-                    'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
+                    'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100'
                   }`}>
                     {index + 1}
                   </div>
                   <img
-                    src={product.imageUrl || '/placeholder.jpg'}
+                    src={resolveImageUrl(product.imageUrl)}
                     alt={product.name}
                     className="w-10 h-10 object-cover rounded-lg bg-gray-100 dark:bg-gray-700 ring-1 ring-gray-200 dark:ring-gray-600"
                   />

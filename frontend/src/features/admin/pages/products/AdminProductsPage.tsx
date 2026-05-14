@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { adminApi } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { Modal } from '@/components/ui/Modal'
+import { Input } from '@/components/ui/Input'
 import { Pagination } from '@/components/ui/Pagination'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { formatPrice } from '@/lib/utils/helpers'
+import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { Plus, Search, Edit, Trash2, Eye, Package, RefreshCw } from 'lucide-react'
 import type { Product } from '@/types'
 import toast from 'react-hot-toast'
@@ -13,6 +16,17 @@ import toast from 'react-hot-toast'
 export function AdminProductsPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [formState, setFormState] = useState({
+    name: '',
+    sku: '',
+    price: '',
+    stock: '',
+    description: '',
+    isActive: true,
+  })
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const { data, isLoading, error } = useQuery({
@@ -21,6 +35,44 @@ export function AdminProductsPage() {
       adminApi
         .getProducts({ pageNumber: page, pageSize: 10, search })
         .then((res) => res.data),
+  })
+
+  const createProductMutation = useMutation({
+    mutationFn: (payload: {
+      name: string
+      sku: string
+      price: number
+      stock: number
+      description: string
+      isActive: boolean
+    }) => adminApi.createProduct(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'], exact: false })
+      setIsProductModalOpen(false)
+      toast.success('Product created successfully')
+    },
+    onError: () => {
+      toast.error('Failed to create product')
+    },
+  })
+
+  const updateProductMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: {
+      name: string
+      sku: string
+      price: number
+      stock: number
+      description: string
+      isActive: boolean
+    } }) => adminApi.updateProduct(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'], exact: false })
+      setIsProductModalOpen(false)
+      toast.success('Product updated successfully')
+    },
+    onError: () => {
+      toast.error('Failed to update product')
+    },
   })
 
   const toggleStatusMutation = useMutation({
@@ -64,13 +116,17 @@ export function AdminProductsPage() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-products'] })}
+            onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-products'], exact: false })}
             className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
-          <Button>
+          <Button onClick={() => {
+            setEditingProduct(null)
+            setFormState({ name: '', sku: '', price: '', stock: '', description: '', isActive: true })
+            setIsProductModalOpen(true)
+          }}>
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -85,7 +141,10 @@ export function AdminProductsPage() {
               type="text"
               placeholder="Search products..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setPage(1)
+                setSearch(e.target.value)
+              }}
               className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
             />
           </div>
@@ -129,7 +188,7 @@ export function AdminProductsPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <img
-                            src={product.images[0]?.url || '/placeholder.jpg'}
+                            src={resolveImageUrl(product.images[0]?.url)}
                             alt={product.name}
                             className="w-10 h-10 object-cover rounded-lg bg-gray-100 dark:bg-gray-700 ring-1 ring-gray-200 dark:ring-gray-600"
                           />
@@ -175,10 +234,29 @@ export function AdminProductsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <button className="p-2 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all" title="View">
+                        <button
+                          onClick={() => navigate(`/products/${product.slug}`)}
+                          className="p-2 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all"
+                          title="View"
+                        >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button className="p-2 rounded-lg text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all" title="Edit">
+                        <button
+                          onClick={() => {
+                            setEditingProduct(product)
+                            setFormState({
+                              name: product.name,
+                              sku: product.sku,
+                              price: product.price.toString(),
+                              stock: product.stock.toString(),
+                              description: product.description || '',
+                              isActive: product.isActive,
+                            })
+                            setIsProductModalOpen(true)
+                          }}
+                          className="p-2 rounded-lg text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-all"
+                          title="Edit"
+                        >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
@@ -222,6 +300,86 @@ export function AdminProductsPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        title={editingProduct ? 'Edit Product' : 'Add Product'}
+        size="lg"
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            const payload = {
+              name: formState.name,
+              sku: formState.sku,
+              price: Number(formState.price) || 0,
+              stock: Number(formState.stock) || 0,
+              description: formState.description,
+              isActive: formState.isActive,
+            }
+
+            if (editingProduct) {
+              updateProductMutation.mutate({ id: editingProduct.id, payload })
+            } else {
+              createProductMutation.mutate(payload)
+            }
+          }}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Input
+              label="Name"
+              value={formState.name}
+              onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
+            />
+            <Input
+              label="SKU"
+              value={formState.sku}
+              onChange={(e) => setFormState((prev) => ({ ...prev, sku: e.target.value }))}
+            />
+            <Input
+              label="Price"
+              type="number"
+              value={formState.price}
+              onChange={(e) => setFormState((prev) => ({ ...prev, price: e.target.value }))}
+            />
+            <Input
+              label="Stock"
+              type="number"
+              value={formState.stock}
+              onChange={(e) => setFormState((prev) => ({ ...prev, stock: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+            <textarea
+              value={formState.description}
+              onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
+              className="min-h-[120px] w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 transition-colors"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={formState.isActive}
+                onChange={(e) => setFormState((prev) => ({ ...prev, isActive: e.target.checked }))}
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              />
+              Active
+            </label>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 justify-end">
+            <Button type="button" variant="outline" onClick={() => setIsProductModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" isLoading={createProductMutation.status === 'pending' || updateProductMutation.status === 'pending'}>
+              {editingProduct ? 'Save Changes' : 'Create Product'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

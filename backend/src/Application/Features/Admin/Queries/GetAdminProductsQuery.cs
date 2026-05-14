@@ -29,7 +29,11 @@ public class GetAdminProductsQueryHandler : IRequestHandler<GetAdminProductsQuer
             .Include(p => p.Brand)
             .Include(p => p.Variants)
             .Where(p =>
-                (string.IsNullOrEmpty(request.Search) || p.Name.Contains(request.Search)) &&
+                (string.IsNullOrEmpty(request.Search) ||
+                    p.Name.Contains(request.Search) ||
+                    p.Sku.Contains(request.Search) ||
+                    p.Category.Name.Contains(request.Search) ||
+                    (p.Brand != null && p.Brand.Name.Contains(request.Search))) &&
                 (!request.CategoryId.HasValue || p.CategoryId == request.CategoryId));
 
         var totalCount = await query.CountAsync(cancellationToken);

@@ -66,4 +66,15 @@ export interface CreateOrderRequest {
   paymentMethod: string
   couponCode?: string
   notes?: string
+  cardholderName?: string
+  cardNumber?: string
+  expiryDate?: string
+  cvv?: string
+}
+
+export interface CardDetails {
+  cardholderName: string
+  cardNumber: string
+  expiryDate: string
+  cvv: string
 }

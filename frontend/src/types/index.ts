@@ -27,6 +27,7 @@ export type {
   OrderStatus,
   PaymentStatus,
   CreateOrderRequest,
+  CardDetails,
 } from './order'
 export type { WishlistItem, Wishlist } from './wishlist'
 export type { Coupon, ShippingMethod } from './checkout'
