@@ -4,7 +4,7 @@ import { adminApi } from '@/lib/api'
 import { Pagination } from '@/components/ui/Pagination'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { Search, Shield, Users, RefreshCw, ShieldOff, ShieldCheck } from 'lucide-react'
+import { Search, Users, RefreshCw, ShieldOff, ShieldCheck } from 'lucide-react'
 import { formatDate } from '@/lib/utils/helpers'
 import type { User } from '@/types'
 import toast from 'react-hot-toast'
@@ -25,7 +25,7 @@ export function AdminUsersPage() {
   const toggleStatusMutation = useMutation({
     mutationFn: (userId: string) => adminApi.toggleUserStatus(userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-users'], exact: false })
       toast.success('User status updated')
     },
     onError: () => {
@@ -37,7 +37,7 @@ export function AdminUsersPage() {
     mutationFn: ({ userId, role }: { userId: string; role: string }) =>
       adminApi.updateUserRole(userId, role),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-users'], exact: false })
       toast.success('User role updated')
     },
     onError: () => {
@@ -63,7 +63,7 @@ export function AdminUsersPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage registered users and their roles</p>
         </div>
         <button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'] })}
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-users'], exact: false })}
           className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <RefreshCw className="h-4 w-4" />
@@ -79,7 +79,10 @@ export function AdminUsersPage() {
               type="text"
               placeholder="Search by name or email..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setPage(1)
+                setSearch(e.target.value)
+              }}
               className="w-full h-9 pl-10 pr-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
             />
           </div>

@@ -4,6 +4,7 @@ import { ProductCard } from '@/features/products/components/ProductCard'
 import { ProductCardSkeleton } from '@/components/ui/Skeleton'
 import { Button } from '@/components/ui/Button'
 import { ArrowRight, Truck, Shield, RefreshCw, Headphones } from 'lucide-react'
+import { FloatingCartAnimation } from '@/features/home/components/FloatingCartAnimation'
 
 export function HomePage() {
   const { data: featuredProducts, isLoading: featuredLoading } = useFeaturedProducts()
@@ -20,21 +21,27 @@ export function HomePage() {
   return (
     <div>
       <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-900 text-white">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float-slow"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 bg-blue-300/10 rounded-full blur-lg animate-float-slower"></div>
+          <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-purple-300/10 rounded-full blur-md animate-float-slow-reverse"></div>
+        </div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 md:py-36 relative">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur-sm mb-6">
+            <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur-sm mb-6 animate-fade-in-up animation-delay-100">
               New arrivals added weekly
             </span>
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight tracking-tight animate-fade-in-up animation-delay-200">
               Discover Amazing Products at Unbeatable Prices
             </h1>
-            <p className="mt-6 text-lg text-indigo-200 leading-relaxed max-w-xl">
+            <p className="mt-6 text-lg text-indigo-200 leading-relaxed max-w-xl animate-fade-in-up animation-delay-300">
               Shop the latest trends with fast shipping, easy returns, and 24/7 customer support. Your satisfaction is our priority.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap gap-4 animate-fade-in-up animation-delay-400">
               <Link to="/products">
-                <Button size="lg" className="bg-white text-primary-700 hover:bg-gray-100 shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                <Button size="lg" className="bg-white text-primary-700 hover:bg-gray-100 shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-0.5 hover:scale-105 transition-all duration-300">
                   Shop Now
                 </Button>
               </Link>
@@ -42,7 +49,7 @@ export function HomePage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white/30 text-white hover:bg-white/10 hover:border-white/50"
+                  className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 hover:scale-105 transition-all duration-300"
                 >
                   New Arrivals
                 </Button>
@@ -52,6 +59,90 @@ export function HomePage() {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       </section>
+
+      <style>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.96);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes float-slow {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+
+        @keyframes float-slower {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-15px);
+          }
+        }
+
+        @keyframes float-slow-reverse {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(10px);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s ease-out forwards;
+          opacity: 0;
+        }
+
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
+        }
+
+        .animate-float-slower {
+          animation: float-slower 8s ease-in-out infinite;
+        }
+
+        .animate-float-slow-reverse {
+          animation: float-slow-reverse 7s ease-in-out infinite;
+        }
+
+        .animation-delay-100 {
+          animation-delay: 0.1s;
+        }
+
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+
+        .animation-delay-300 {
+          animation-delay: 0.3s;
+        }
+
+        .animation-delay-400 {
+          animation-delay: 0.4s;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .animate-fade-in-up,
+          .animate-float-slow,
+          .animate-float-slower,
+          .animate-float-slow-reverse {
+            animation: none;
+          }
+        }
+      `}</style>
+
+      <FloatingCartAnimation />
 
       <section className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">

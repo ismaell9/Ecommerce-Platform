@@ -31,6 +31,8 @@ export const ordersApi = {
 interface AdminOrder {
   id: string
   orderNumber: string
+  customerName?: string
+  customerEmail?: string
   subtotal: number
   discount: number
   tax: number
@@ -51,6 +53,7 @@ export const adminOrdersApi = {
     pageNumber?: number
     pageSize?: number
     status?: string
+    search?: string
   }) =>
     apiClient.get<PaginatedResponse<AdminOrder>>('/admin/orders', { params }),
 

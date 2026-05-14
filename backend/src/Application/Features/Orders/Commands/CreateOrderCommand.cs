@@ -15,7 +15,11 @@ public record CreateOrderCommand(
     ShippingAddressDto ShippingAddress,
     string PaymentMethod,
     string? CouponCode = null,
-    string? Notes = null) : IRequest<Result<OrderDto>>;
+    string? Notes = null,
+    string? CardholderName = null,
+    string? CardNumber = null,
+    string? ExpiryDate = null,
+    string? CVV = null) : IRequest<Result<OrderDto>>;
 
 public class ShippingAddressDto
 {
@@ -161,7 +165,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             Currency = "USD",
             PaymentMethod = request.PaymentMethod,
             WalletId = request.PaymentMethod == "wallet" ? userId.ToString() : null,
-            Description = $"Payment for order {orderNumber}"
+            Description = $"Payment for order {orderNumber}",
+            CardholderName = request.CardholderName,
+            CardNumber = request.CardNumber,
+            ExpiryDate = request.ExpiryDate,
+            CVV = request.CVV
         };
 
         var paymentResult = await _paymentGateway.ProcessPaymentAsync(paymentRequest, cancellationToken);

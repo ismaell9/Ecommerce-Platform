@@ -7,6 +7,7 @@ export interface User {
   profileImageUrl?: string
   roles: string[]
   isEmailVerified: boolean
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }

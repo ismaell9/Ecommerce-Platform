@@ -12,6 +12,8 @@ import { ProductDetailsPage } from '@/features/products/pages/details/ProductDet
 import { CartPage } from '@/features/cart/pages/CartPage'
 import { WishlistPage } from '@/features/wishlist/pages/WishlistPage'
 import { CheckoutPage } from '@/features/checkout/pages/CheckoutPage'
+import { PrivacyPolicyPage } from '@/features/pages/PrivacyPolicyPage'
+import { TermsOfServicePage } from '@/features/pages/TermsOfServicePage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { OrderHistoryPage } from '@/features/profile/pages/OrderHistoryPage'
 import { AdminDashboardPage } from '@/features/admin/pages/dashboard/AdminDashboardPage'
@@ -98,6 +100,14 @@ export const router = createBrowserRouter([
             <OrderHistoryPage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: 'privacy-policy',
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        path: 'terms-of-service',
+        element: <TermsOfServicePage />,
       },
       {
         path: 'unauthorized',

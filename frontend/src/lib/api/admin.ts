@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import type {
   ApiResponse,
   PaginatedResponse,
+  Product,
   User,
 } from '@/types'
 
@@ -56,15 +57,23 @@ export const adminApi = {
   }) =>
     apiClient.get<PaginatedResponse<Product>>('/admin/products', { params }),
 
-  createProduct: (data: FormData) =>
-    apiClient.post<ApiResponse<Product>>('/admin/products', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  createProduct: (data: {
+    name: string
+    sku: string
+    price: number
+    stock: number
+    description: string
+    isActive: boolean
+  }) => apiClient.post<ApiResponse<Product>>('/admin/products', data),
 
-  updateProduct: (id: string, data: FormData) =>
-    apiClient.put<ApiResponse<Product>>(`/admin/products/${id}`, data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  updateProduct: (id: string, data: {
+    name: string
+    sku: string
+    price: number
+    stock: number
+    description: string
+    isActive: boolean
+  }) => apiClient.put<ApiResponse<Product>>(`/admin/products/${id}`, data),
 
   deleteProduct: (id: string) =>
     apiClient.delete<ApiResponse<null>>(`/admin/products/${id}`),

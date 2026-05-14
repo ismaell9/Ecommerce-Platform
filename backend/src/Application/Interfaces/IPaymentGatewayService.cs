@@ -15,6 +15,12 @@ public class PaymentRequest
     public string PaymentMethod { get; set; } = string.Empty;
     public string? WalletId { get; set; }
     public string? Description { get; set; }
+    
+    // Card payment details (only when PaymentMethod == "card")
+    public string? CardholderName { get; set; }
+    public string? CardNumber { get; set; }
+    public string? ExpiryDate { get; set; }
+    public string? CVV { get; set; }
 }
 
 public class PaymentResult

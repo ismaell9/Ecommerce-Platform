@@ -9,9 +9,10 @@ import { clearCart } from '@/store/slices/cartSlice'
 import { formatPrice, resolveImageUrl } from '@/lib/utils/helpers'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { CardDetailsForm } from '@/features/checkout/components/CardDetailsForm'
 import { ordersApi } from '@/lib/api'
 import toast from 'react-hot-toast'
-import type { ShippingAddress, CreateOrderRequest } from '@/types'
+import type { ShippingAddress, CreateOrderRequest, CardDetails } from '@/types'
 import { CreditCard, Truck } from 'lucide-react'
 
 export function CheckoutPage() {
@@ -21,6 +22,12 @@ export function CheckoutPage() {
   const cart = useAppSelector((state) => state.cart.cart)
   const [selectedShipping, setSelectedShipping] = useState('standard')
   const [selectedPayment, setSelectedPayment] = useState('card')
+  const [cardDetails, setCardDetails] = useState<CardDetails>({
+    cardholderName: '',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+  })
 
   const {
     register,
@@ -53,9 +60,21 @@ export function CheckoutPage() {
 
   const onSubmit = async (data: ShippingAddress) => {
     try {
+      // Validate card details if paying with card
+      if (selectedPayment === 'card') {
+        if (!cardDetails.cardholderName || !cardDetails.cardNumber || !cardDetails.expiryDate || !cardDetails.cvv) {
+          toast.error('Please fill in all card details')
+          return
+        }
+      }
+
       const orderData: CreateOrderRequest = {
         shippingAddress: data,
         paymentMethod: selectedPayment,
+        cardholderName: cardDetails.cardholderName,
+        cardNumber: cardDetails.cardNumber,
+        expiryDate: cardDetails.expiryDate,
+        cvv: cardDetails.cvv,
       }
 
       const response = await ordersApi.createOrder(orderData)
@@ -214,6 +233,10 @@ export function CheckoutPage() {
               ))}
             </div>
           </div>
+
+          {selectedPayment === 'card' && (
+            <CardDetailsForm onCardDetailsChange={setCardDetails} />
+          )}
 
           <Button
             onClick={handleSubmit(onSubmit)}
